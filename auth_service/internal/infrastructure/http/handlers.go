@@ -36,7 +36,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		output := (h.uc).Login(input)
+		output := (h.uc).Login(r.Context(), input)
 		writeJSON(w, output.Status, output.Data)
 }
 
@@ -49,7 +49,7 @@ func (h *AuthHandler) RegistrHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		output := (h.uc).Registr(input)
+		output := (h.uc).Registr(r.Context(), input)
 		writeJSON(w, output.Status, output.Data)
 }
 
@@ -62,6 +62,6 @@ func (h *AuthHandler) DummyLoginHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		output := (h.uc).DummyLogin(input)
+		output := (h.uc).DummyLogin(r.Context(), input)
 		writeJSON(w, output.Status, output.Data)
 }

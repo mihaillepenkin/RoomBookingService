@@ -39,6 +39,7 @@ type Config struct {
 	DB        DBConfig
 	JWT       JWTConfig
 	Port      int
+	RoomAdress string
 }
 
 type DBConfig struct {
@@ -69,7 +70,7 @@ func (c DBConfig) Validate() error {
 }
 
 func (c DBConfig) DSN() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		c.Host, c.Port, c.User, c.Password, c.Name)
 }
 
@@ -106,7 +107,8 @@ func LoadConfig() (*Config, error) {
 			Secret:           getEnv("JWT_SECRET", ""),
 			AccessExpiry:     getEnvDuration("JWT_ACCESS_EXPIRY", 7*24*time.Hour),
 		},
-		Port: getEnvInt("PORT", 8082),
+		Port: getEnvInt("PORT", 8083),
+		RoomAdress: getEnv("ROOM_SERVICE_ADDR", ":9090"),
 	}
 
 	if err := cfg.Validate(); err != nil {

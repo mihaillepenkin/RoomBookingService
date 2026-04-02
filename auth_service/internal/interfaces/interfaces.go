@@ -2,17 +2,18 @@ package interfaces
 
 import (
 	"auth_service/internal/domain"
+	"context"
 )
 
 type AuthService interface {
-	Login(input LoginDTO) OutputDTO
-	Registr(input RegistrDTO) OutputDTO
-	DummyLogin(input DummyLoginDTO) OutputDTO
+	Login(ctx context.Context, input LoginDTO) OutputDTO
+	Registr(ctx context.Context, input RegistrDTO) OutputDTO
+	DummyLogin(ctx context.Context, input DummyLoginDTO) OutputDTO
 }
 
 type AuthRepository interface {
-	CreateUser(email, password, role string) (*domain.User, error)
-	GetUser(email string) (*domain.User, error)
+	CreateUser(ctx context.Context, email, password, role string) (*domain.User, error)
+	GetUser(ctx context.Context, email string) (*domain.User, error)
 }
 
 type JWTService interface {

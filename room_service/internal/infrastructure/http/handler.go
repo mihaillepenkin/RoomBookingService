@@ -34,7 +34,7 @@ func (h *RoomHandler) GetListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		http.Error(w, "missing token", http.StatusUnauthorized)
+		writeError(w, 401, "you are not authtorized")
 		return
 	}
 	parts := strings.SplitN(authHeader, " ", 2)
@@ -42,8 +42,8 @@ func (h *RoomHandler) GetListHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 401, "you are not authtorized")
 		return
 	}
-	_ = strings.TrimSpace(parts[1])
-	output := (h.serv).ListRooms()
+	token := strings.TrimSpace(parts[1])
+	output := (h.serv).ListRooms(r.Context(), token)
 	writeJSON(w, output.Status, output.Data)
 }
 
@@ -51,7 +51,7 @@ func (h *RoomHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		http.Error(w, "missing token", http.StatusUnauthorized)
+		writeError(w, 401, "you are not authtorized")
 		return
 	}
 	parts := strings.SplitN(authHeader, " ", 2)
@@ -61,14 +61,14 @@ func (h *RoomHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = strings.TrimSpace(parts[1])
 	vars := mux.Vars(r)
-	name := vars["name"]
-	if name == "" {
+	id := vars["id"]
+	if id == "" {
 		writeError(w, 401, "bad request")
 		return
 	}
 	var input interfaces.GetDTO
-	input.Name = name
-	output := (h.serv).GetRoom(input)
+	input.ID = id
+	output := (h.serv).GetRoom(r.Context(), input)
 	writeJSON(w, output.Status, output.Data)
 }
 
@@ -76,7 +76,7 @@ func (h *RoomHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		http.Error(w, "missing token", http.StatusUnauthorized)
+		writeError(w, 401, "you are not authtorized")
 		return
 	}
 	parts := strings.SplitN(authHeader, " ", 2)
@@ -92,6 +92,6 @@ func (h *RoomHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, "bad request")
 		return
 	}
-	output := (h.serv).CreateRoom(input, token)
+	output := (h.serv).CreateRoom(r.Context(), input, token)
 	writeJSON(w, output.Status, output.Data)
 }

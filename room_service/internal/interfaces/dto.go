@@ -3,8 +3,8 @@ package interfaces
 
 type CreateDTO struct {
 	Name string `json:"name"`
-	Description string `json:"description"`
-	Capacity int `json:"capacity"`
+	Description string `json:"description,omitempty"`
+	Capacity int `json:"capacity,omitempty"`
 }
 
 type OutputDTO struct {
@@ -13,5 +13,5 @@ type OutputDTO struct {
 }
 
 type GetDTO struct {
-	Name string `json:"name"`
+	ID string `json:"room_id"`
 }

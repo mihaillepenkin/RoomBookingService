@@ -60,6 +60,8 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 	}
 
+	log.Println("auth service start")
+
 	go func() {
 		if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)

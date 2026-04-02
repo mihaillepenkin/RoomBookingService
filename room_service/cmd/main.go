@@ -1,23 +1,28 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
 	"room_service/internal/config"
+	"room_service/internal/grpc"
 	handler "room_service/internal/infrastructure/http"
 	"room_service/internal/infrastructure/jwt"
 	"room_service/internal/infrastructure/postgres"
 	"room_service/internal/interfaces"
-	"context"
-	"database/sql"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
 
+	roomv1 "room_service/proto/room/v1"
+
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	grpcс "google.golang.org/grpc"
 )
 
 func initDB(cfg *config.Config) (*sql.DB, error) {
@@ -43,13 +48,25 @@ func main() {
 	}
 	defer db.Close()
 	repo := postgres.RoomRepository{DB: db}
+	grpcServer := grpcс.NewServer()
+	myGrpcServer := grpc.NewRoomServer(&repo)
+	roomv1.RegisterRoomServiceServer(grpcServer, myGrpcServer)
+	go func() {
+		lis, err := net.Listen("tcp", ":" + cfg.RoomAdress)
+		if err != nil {
+			log.Fatalf("failed to listen gRPC: %v", err)
+		}
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
 	jwtt := jwt.NewJWTService(cfg.JWT.Secret, cfg.JWT.AccessExpiry)
 	roomServ := interfaces.NewRoomUsecase(jwtt, &repo)
 	handl := handler.NewHandler(roomServ)
 	m := mux.NewRouter()
-	m.HandleFunc("/create", handl.CreateHandler).Methods("POST")
-	m.HandleFunc("/list", handl.GetListHandler).Methods("GET")
-	m.HandleFunc("/get/{name}", handl.GetHandler).Methods("GET")
+	m.HandleFunc("/rooms/create", handl.CreateHandler).Methods("POST")
+	m.HandleFunc("/rooms/list", handl.GetListHandler).Methods("GET")
+	m.HandleFunc("/rooms/{id}", handl.GetHandler).Methods("GET")
 
 	srv := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.Port),
@@ -59,6 +76,9 @@ func main() {
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+
+
+	log.Println("room service start")
 
 	go func() {
 		if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

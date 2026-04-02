@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25.5-alpine AS builder
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -17,8 +17,6 @@ RUN apk add --no-cache ca-certificates tzdata && \
 
 COPY --from=builder /app/room-service .
 
-COPY docs ./docs
-
-EXPOSE 8081
+EXPOSE 8082
 
 CMD ["./room-service"]

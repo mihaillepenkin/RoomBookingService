@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package room.v1;
+
+option go_package = "github.com/internships-backend/test-backend-mihaillepenkin/pkg/api/room/v1;roomv1";
+
+service RoomService {
+  rpc CheckRoomExists(CheckRoomExistsRequest) returns (CheckRoomExistsResponse);
+}
+
+message CheckRoomExistsRequest {
+  string room_id = 1;
+}
+
+message CheckRoomExistsResponse {
+  bool exists = 1;
+}

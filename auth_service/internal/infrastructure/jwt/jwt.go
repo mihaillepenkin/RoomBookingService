@@ -48,7 +48,7 @@ func (j *JWTService) ValidateToken(tokenStr string) (*domain.User, error) {
 	} else if idf, ok := claims["sub"].(float64); ok {
 		user.ID = fmt.Sprintf("%d", int64(idf))
 	}
-	if role, ok := claims["sub"].(string); ok {
+	if role, ok := claims["role"].(string); ok {
 		user.Role = role
 	}
 	return user, nil
