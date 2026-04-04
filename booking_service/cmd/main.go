@@ -44,6 +44,8 @@ func main() {
 	}
 	defer db.Close()
 	schRepo := postgres.ScheduleRepository{DB: db}
+	slotRepo := postgres.SlotRepository{DB: db}
+	bookingRepo := postgres.BookingRepository{DB: db}
 	roomServiceAddr := cfg.RoomAdress
     roomClient, err := grpc.NewRoomServiceClient(roomServiceAddr)
     if err != nil {
@@ -52,9 +54,19 @@ func main() {
     defer roomClient.Close() 
 	jwtt := jwt.NewJWTService(cfg.JWT.Secret, cfg.JWT.AccessExpiry)
     scheduleService := interfaces.NewScheduleService(&schRepo, roomClient, jwtt)
-	handl := handler.NewHandler(scheduleService)
+	slotService := interfaces.NewSlotService(&slotRepo, jwtt, &schRepo, roomClient)
+	bookingService := interfaces.NewBookingService(&bookingRepo, jwtt, &schRepo)
+	handl := handler.NewHandler(scheduleService, slotService, bookingService)
 	m := mux.NewRouter()
 	m.HandleFunc("/rooms/{roomId}/schedule/create", handl.CreateScheduleHandler).Methods("POST")
+	m.HandleFunc("/rooms/{roomId}/slots/list", handl.GetAllSlotsHandler).Methods("GET")
+	m.HandleFunc("/bookings/create", handl.CreateBookingHandler).Methods("POST")
+	m.HandleFunc("/bookings/my", handl.GetMyBooksHandler).Methods("GET")
+	m.HandleFunc("/bookings/{bookingId}/cancel", handl.CancelBookingHandler).Methods("POST")
+	m.HandleFunc("/bookings/list", handl.GetAllBookingsHandler).Methods("GET")
+	m.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}).Methods("GET")
 
 	srv := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.Port),

@@ -25,7 +25,7 @@ func NewScheduleService(repo ScheduleRepository, roomClient grpc.RoomServiceClie
 func (s *ScheduleUsecase) CreateSchedule(ctx context.Context, input CreateScheduleDTO, token string) OutputDTO {
 	user, err := s.jwt.ValidateToken(token)
 	if (err != nil) {
-		return OutputDTO{Status: 500, Data: map[string]interface{}{"error": err.Error()}}
+		return OutputDTO{Status: 401, Data: map[string]interface{}{"error": "you are not authtorized"}}
 	}
 	if (user.Role != "admin") {
 		return OutputDTO{Status: 403, Data: map[string]interface{}{"error": "for this action need admin role"}}
@@ -51,7 +51,7 @@ func (s *ScheduleUsecase) CreateSchedule(ctx context.Context, input CreateSchedu
 	}
 	exist, err := s.roomClient.CheckRoomExists(ctx, input.RoomID)
 	if (err != nil) {
-		return OutputDTO{Status: 404, Data: map[string]interface{}{"error": err.Error()}}
+		return OutputDTO{Status: 500, Data: map[string]interface{}{"error": err.Error()}}
 	}
 	if (!exist) {
 		return OutputDTO{Status: 404, Data: map[string]interface{}{"error": "room not found"}}

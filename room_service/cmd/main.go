@@ -39,7 +39,7 @@ func initDB(cfg *config.Config) (*sql.DB, error) {
 
 func main() {
 	cfg, err := config.LoadConfig()
-	if (err != nil) {
+	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	db, err := initDB(cfg)
@@ -52,7 +52,7 @@ func main() {
 	myGrpcServer := grpc.NewRoomServer(&repo)
 	roomv1.RegisterRoomServiceServer(grpcServer, myGrpcServer)
 	go func() {
-		lis, err := net.Listen("tcp", ":" + cfg.RoomAdress)
+		lis, err := net.Listen("tcp", ":"+cfg.RoomAdress)
 		if err != nil {
 			log.Fatalf("failed to listen gRPC: %v", err)
 		}
@@ -67,6 +67,9 @@ func main() {
 	m.HandleFunc("/rooms/create", handl.CreateHandler).Methods("POST")
 	m.HandleFunc("/rooms/list", handl.GetListHandler).Methods("GET")
 	m.HandleFunc("/rooms/{id}", handl.GetHandler).Methods("GET")
+	m.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}).Methods("GET")
 
 	srv := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.Port),
@@ -76,7 +79,6 @@ func main() {
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
-
 
 	log.Println("room service start")
 

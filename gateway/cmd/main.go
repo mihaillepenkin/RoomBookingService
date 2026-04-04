@@ -29,6 +29,7 @@ func main() {
     r := mux.NewRouter()
     r.Path("/register").Handler(reverseProxy(authService))
     r.Path("/login").Handler(reverseProxy(authService))
+    r.Path("/rooms/{roomId}/slots/list").Handler(reverseProxy(bookingService))
     r.Path("/rooms/{roomId}/schedule/create").Handler(reverseProxy(bookingService))
     r.Path("/rooms/{roomId}/slots").Handler(reverseProxy(bookingService))
     r.PathPrefix("/bookings").Handler(reverseProxy(bookingService))

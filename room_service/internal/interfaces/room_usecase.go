@@ -29,7 +29,7 @@ func (r *RoomUsecase) ListRooms(ctx context.Context, token string) OutputDTO {
 func (r *RoomUsecase) CreateRoom(ctx context.Context, input CreateDTO, token string) OutputDTO {
 	user, err := r.jwt.ValidateToken(token)
 	if err != nil {
-		return OutputDTO{Status: 500, Data: map[string]interface{}{"error": err.Error()}}
+		return OutputDTO{Status: 401, Data: map[string]interface{}{"error": "invalid token"}}
 	}
 	if user.Role != "admin" {
 		return OutputDTO{Status: 403, Data: map[string]interface{}{"error": fmt.Sprintf("for this action need admin role, your role : %s", user.Role)}}

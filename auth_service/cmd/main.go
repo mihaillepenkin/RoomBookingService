@@ -34,7 +34,7 @@ func initDB(cfg *config.Config) (*sql.DB, error) {
 
 func main() {
 	cfg, err := config.LoadConfig()
-	if (err != nil) {
+	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	db, err := initDB(cfg)
@@ -50,6 +50,9 @@ func main() {
 	m.HandleFunc("/register", handl.RegistrHandler).Methods("POST")
 	m.HandleFunc("/login", handl.LoginHandler).Methods("POST")
 	m.HandleFunc("/dummyLogin", handl.DummyLoginHandler).Methods("POST")
+	m.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}).Methods("GET")
 
 	srv := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.Port),
