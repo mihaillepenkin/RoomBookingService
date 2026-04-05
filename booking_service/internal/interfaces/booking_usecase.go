@@ -109,7 +109,7 @@ func (b *BookingUsecase) GetMyBooks(ctx context.Context, token string) OutputDTO
 	now := time.Now()
 	listOfActualBooks := make([]domain.Booking, 0)
 	for ind, el := range *listOfStarts {
-		if (el.Compare(now) >= -1) {
+		if (el.Compare(now) > -1) {
 			listOfActualBooks = append(listOfActualBooks, (*listOfAllBooks)[ind])
 		}
 	}
