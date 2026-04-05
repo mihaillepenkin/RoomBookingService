@@ -32,12 +32,12 @@ func (s *ScheduleUsecase) CreateSchedule(ctx context.Context, input CreateSchedu
 	}
 	startTime, err := time.Parse("15:04", input.StartTime)
     if err != nil {
-        return OutputDTO{Status: 400, Data: map[string]interface{}{"error": fmt.Sprintf("invalid start_time format: %w", err)}}
+        return OutputDTO{Status: 400, Data: map[string]interface{}{"error": fmt.Sprintf("invalid start_time format: %v", err)}}
     }
     
     endTime, err := time.Parse("15:04", input.EndTime)
     if err != nil {
-        return OutputDTO{Status: 400, Data: map[string]interface{}{"error": fmt.Sprintf("invalid end_time format: %w", err)}}
+        return OutputDTO{Status: 400, Data: map[string]interface{}{"error": fmt.Sprintf("invalid end_time format: %v", err)}}
     }
 	sch := &domain.Schedule{
 		DaysOfWeek: input.DaysOfWeek,

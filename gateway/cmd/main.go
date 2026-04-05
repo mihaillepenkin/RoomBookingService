@@ -41,6 +41,9 @@ func main() {
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("OK"))
     })
+    r.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}).Methods("GET")
     srv := &http.Server{
         Addr:              ":8080",
         Handler:           r,

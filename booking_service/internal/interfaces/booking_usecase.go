@@ -4,7 +4,6 @@ import (
 	"booking_service/internal/domain"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -53,6 +52,11 @@ func (b *BookingUsecase) CreateBook(ctx context.Context, input CreateBookingDTO,
 		return OutputDTO{Status: 404, Data: map[string]interface{}{"error": "slot is not founded"}}
 	}
 	today, err := time.Parse("2006-01-02", date)
+	now := time.Now().UTC()
+	slotDateTime := time.Date(today.Year(), today.Month(), today.Day(), startTime.Hour(), startTime.Minute(), 0, 0, time.UTC)
+	if slotDateTime.Before(now) {
+		return OutputDTO{Status: 400, Data: map[string]interface{}{"error": "cannot book past slots"}}
+	}
 	flag := true
 	for _, el := range schedule.DaysOfWeek {
 		if ((el % 7) == int64(int(today.Weekday()))) {
@@ -121,8 +125,11 @@ func (b *BookingUsecase) CancelBook(ctx context.Context, input CancelBookingDTO,
 		return OutputDTO{Status: 403, Data: map[string]interface{}{"error": "for this action need user role"}}
 	}
 	book, err := b.repo.UpdateBookStatusByID(ctx, input.BookingID, user.ID)
+	if book == nil {
+        book = &domain.Booking{}
+    }
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if err == sql.ErrNoRows {
 			return OutputDTO{Status: 404, Data: map[string]interface{}{"error": err.Error()}}
 		}
 		return OutputDTO{Status: 500, Data: map[string]interface{}{"error": err.Error()}}
@@ -152,6 +159,9 @@ func (b *BookingUsecase) GetAllBookings(ctx context.Context, input GetAllBooksDT
         return OutputDTO{Status: 500, Data: map[string]interface{}{"error": err.Error()}}
     }
     totalPages := (totalCount + input.PageSize - 1) / input.PageSize
+	if bookings == nil {
+        bookings = &[]domain.Booking{}
+    }
     return OutputDTO{
         Status: 200,
         Data: map[string]interface{}{
