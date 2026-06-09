@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Booking Frontend</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --card:#fff; --primary:#3b6ef6; --primary-d:#2d55c9;
+    --danger:#e34a4a; --success:#2ea86a; --text:#222; --muted:#6b7280;
+    --border:#e3e7ef; --shadow:0 4px 14px rgba(20,30,60,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1px solid var(--border)}
+  header.top h1{font-size:18px;margin:0}
+  .user-box{font-size:14px;color:var(--muted)}
+  button{cursor:pointer;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:#fff}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  button.primary:hover{background:var(--primary-d)}
+  button.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}
+  input:focus,select:focus{outline:2px solid var(--primary);outline-offset:-1px}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{padding:8px 14px;border-radius:8px;background:#eef1f7;font-size:13px;border:none;color:#333}
+  .tab.active{background:var(--primary);color:#fff}
+  .hidden{display:none !important}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  th{background:#f9fbfd;font-weight:600;color:#444}
+  .alert{padding:10px 14px;border-radius:8px;margin:10px 0;font-size:14px}
+  .alert.error{background:#fdecec;color:#a82727;border:1px solid #f6c2c2}
+  .alert.success{background:#e7f7ef;color:#1f7a4a;border:1px solid #c1e8d1}
+  .alert.info{background:#eef4ff;color:#274a9c;border:1px solid #c7d9fb}
+  .pager{display:flex;gap:8px;align-items:center;margin-top:10px}
+  .slot{padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;background:#fff}
+  .auth-wrap{max-width:420px;margin:60px auto}
+  .muted{color:var(--muted);font-size:13px}
+  a.link{color:var(--primary);text-decoration:none;cursor:pointer}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ========== AUTH SCREEN ========== -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="card">
+      <h2 style="margin-top:0">Вход</h2>
+      <div class="row">
+        <div style="flex:1">
+          <label>Имя пользователя</label>
+          <input id="loginUsername" type="text" autocomplete="username" />
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label>Пароль</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" />
+        </div>
+      </div>
+      <div id="loginMsg"></div>
+      <div class="row">
+        <button class="primary" id="btnLogin">Войти</button>
+        <button id="btnShowRegister">Регистрация</button>
+        <button id="btnDummy">Dummy Login</button>
+      </div>
+    </div>
+
+    <div id="registerCard" class="card hidden">
+      <h2 style="margin-top:0">Регистрация</h2>
+      <div class="row"><div style="flex:1"><label>Имя пользователя</label><input id="regUsername" type="text" /></div></div>
+      <div class="row"><div style="flex:1"><label>Email</label><input id="regEmail" type="email" /></div></div>
+      <div class="row"><div style="flex:1"><label>Пароль</label><input id="regPassword" type="password" /></div></div>
+      <div id="regMsg"></div>
+      <div class="row">
+        <button class="primary" id="btnRegister">Зарегистрировать</button>
+        <button id="btnShowLogin">Уже есть аккаунт</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="appScreen" class="hidden">
+  <header class="top">
+    <h1>Booking Service</h1>
+    <div class="user-box">
+      <span id="whoami" class="muted"></span>
+      <button id="btnLogout" style="margin-left:10px">Выйти</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="my">Мои брони</button>
+      <button class="tab" data-tab="schedule">Создать расписание</button>
+      <button class="tab" data-tab="slots">Слоты и бронирование</button>
+      <button class="tab" data-tab="all">Все брони</button>
+    </div>
+
+    <!-- MY BOOKINGS -->
+    <section id="tab-my" class="card">
+      <h3 style="margin-top:0">Мои брони</h3>
+      <div id="myMsg"></div>
+      <button class="primary" id="btnRefreshMy">Обновить</button>
+      <div id="myTableWrap" style="margin-top:14px"></div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section id="tab-schedule" class="card hidden">
+      <h3 style="margin-top:0">Создать расписание</h3>
+      <div class="grid2">
+        <div><label>Room ID</label><input id="schRoom" type="text" /></div>
+        <div><label>Дата</label><input id="schDate" type="date" /></div>
+        <div><label>Начало</label><input id="schStart" type="time" /></div>
+        <div><label>Конец</label><input id="schEnd" type="time" /></div>
+      </div>
+      <div id="schMsg"></div>
+      <div class="row"><button class="primary" id="btnCreateSchedule">Создать</button></div>
+    </section>
+
+    <!-- SLOTS -->
+    <section id="tab-slots" class="card hidden">
+      <h3 style="margin-top:0">Слоты и бронирование</h3>
+      <div class="grid2">
+        <div><label>Room ID</label><input id="slotsRoom" type="text" /></div>
+        <div><label>Дата</label><input id="slotsDate" type="date" /></div>
+      </div>
+      <div class="row"><button class="primary" id="btnLoadSlots">Загрузить слоты</button></div>
+      <div id="slotsMsg"></div>
+      <div id="slotsList" style="margin-top:12px"></div>
+    </section>
+
+    <!-- ALL BOOKINGS -->
+    <section id="tab-all" class="card hidden">
+      <h3 style="margin-top:0">Все брони</h3>
+      <div id="allMsg"></div>
+      <div class="pager">
+        <label style="margin:0">Страница:</label>
+        <input id="allPage" type="number" min="1" value="1" style="width:80px" />
+        <label style="margin:0">На стр.:</label>
+        <input id="allPageSize" type="number" min="1" value="20" style="width:80px" />
+        <button class="primary" id="btnLoadAll">Загрузить</button>
+      </div>
+      <div id="allTableWrap" style="margin-top:14px"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   UTILS — защита от XSS: все выводимые данные экранируются
+   ========================================================= */
+const ESC_MAP = {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
+function esc(v){
+  if (v === null || v === undefined) return "";
+  return String(v).replace(/[&<>"']/g, c => ESC_MAP[c]);
+}
+// Безопасно положить данные в элемент — только через textContent или экранированный HTML
+function safeText(el, v){ el.textContent = (v ?? ""); }
+function safeHTML(el, v){ el.innerHTML = esc(v ?? ""); }
+
+function showMsg(containerId, text, type="error"){
+  const c = document.getElementById(containerId);
+  c.innerHTML = "";
+  if (!text) return;
+  const d = document.createElement("div");
+  d.className = "alert " + (type==="error"?"error":type==="success"?"success":"info");
+  safeText(d, text); // ← XSS-safe
+  c.appendChild(d);
+}
+
+/* =========================================================
+   CONFIG
+   ========================================================= */
+const API = {
+  auth:    "http://localhost:8080",
+  booking: "http://localhost:8081",
+};
+
+const TOKEN_KEY = "auth_token";
+const USER_KEY  = "auth_user";
+
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
+function setUser(u){ localStorage.setItem(USER_KEY, JSON.stringify(u)); }
+function getUser(){ try { return JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch { return null; } }
+function clearAuth(){ localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
+
+/* =========================================================
+   FETCH WRAPPER — с таймаутом, abort, защитой
+   ========================================================= */
+async function apiRequest({baseUrl, path, method="GET", body=null, auth=true}){
+  const headers = { "Content-Type":"application/json", "Accept":"application/json" };
+  if (auth){
+    const t = getToken();
+    if (t) headers["Authorization"] = "Bearer " + t;
+  }
+  const ctrl = new AbortController();
+  const tm = setTimeout(()=>ctrl.abort(), 15000);
+  try{
+    const res = await fetch(baseUrl + path, {
+      method, headers, body: body ? JSON.stringify(body) : undefined,
+      signal: ctrl.signal, credentials: "omit",
+    });
+    let data = null;
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")){
+      try { data = await res.json(); } catch { data = null; }
+    } else {
+      data = await res.text();
+    }
+    return { status: res.status, ok: res.ok, data };
+  } catch(e){
+    throw new Error("Ошибка сети: " + (e.name==="AbortError" ? "таймаут" : e.message));
+  } finally {
+    clearTimeout(tm);
+  }
+}
+
+/* =========================================================
+   AUTH API
+   ========================================================= */
+async function apiLogin(username, password){
+  const res = await apiRequest({
+    baseUrl: API.auth, path: "/login", method: "POST", auth: false,
+    body: { username, password },
+  });
+  return res;
+}
+async function apiRegister(username, email, password){
+  const res = await apiRequest({
+    baseUrl: API.auth, path: "/register", method: "POST", auth: false,
+    body: { username, email, password },
+  });
+  return res;
+}
+async function apiDummyLogin(){
+  const res = await apiRequest({
+    baseUrl: API.auth, path: "/dummyLogin", method: "POST", auth: false,
+    body: {},
+  });
+  return res;
+}
+
+/* =========================================================
+   BOOKING API
+   ========================================================= */
+async function apiCreateSchedule(roomId, payload){
+  return apiRequest({
+    baseUrl: API.booking,
+    path: "/rooms/" + encodeURIComponent(roomId) + "/schedule/create",
+    method: "POST", body: payload,
+  });
+}
+async function apiGetSlots(roomId, date){
+  return apiRequest({
+    baseUrl: API.booking,
+    path: "/rooms/" + encodeURIComponent(roomId) + "/slots/list?date=" + encodeURIComponent(date),
+    method: "GET",
+  });
+}
+async function apiCreateBooking(payload){
+  return apiRequest({
+    baseUrl: API.booking, path: "/bookings/create", method: "POST", body: payload,
+  });
+}
+async function apiGetMyBooks(){
+  return apiRequest({
+    baseUrl: API.booking, path: "/bookings/my", method: "GET",
+  });
+}
+async function apiGetAllBooks(page, pageSize){
+  return apiRequest({
+    baseUrl: API.booking,
+    path: "/bookings/list?page=" + encodeURIComponent(page) + "&pageSize=" + encodeURIComponent(pageSize),
+    method: "GET",
+  });
+}
+async function apiCancelBooking(bookingId){
+  return apiRequest({
+    baseUrl: API.booking,
+    path: "/bookings/" + encodeURIComponent(bookingId) + "/cancel",
+    method: "POST",
+  });
+}
+
+/* =========================================================
+   NAVIGATION / TABS
+   ========================================================= */
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  ["my","schedule","slots","all"].forEach(t=>{
+    document.getElementById("tab-"+t).classList.toggle("hidden", t!==name);
+  });
+  if (name==="my") loadMy();
+}
+
+/* =========================================================
+   RENDER — только через DOM API / esc()
+   ========================================================= */
+function renderTable(container, rows, columns, actions=[]){
+  container.innerHTML = "";
+  if (!rows || !rows.length){
+    const p = document.createElement("p"); p.className="muted"; p.textContent = "Нет данных";
+    container.appendChild(p); return;
+  }
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const trh = document.createElement("tr");
+  columns.forEach(c=>{
+    const th = document.createElement("th"); safeText(th, c.label); trh.appendChild(th);
+  });
+  if (actions.length){
+    const th = document.createElement("th"); th.textContent="Действия"; trh.appendChild(th);
+  }
+  thead.appendChild(trh); table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  rows.forEach(row=>{
+    const tr = document.createElement("tr");
+    columns.forEach(c=>{
+      const td = document.createElement("td");
+      safeText(td, row[c.key]); // ← безопасно
+      tr.appendChild(td);
+    });
+    if (actions.length){
+      const td = document.createElement("td");
+      actions.forEach(a=>{
+        const btn = document.createElement("button");
+        btn.textContent = a.label;
+        btn.className = a.kind || "";
+        btn.onclick = ()=>a.onClick(row);
+        td.appendChild(btn);
+      });
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+
+/* =========================================================
+   HANDLERS
+   ========================================================= */
+function handleAuthResponse(res, msgEl){
+  if (!res.ok){
+    const msg = (res.data && (res.data.error || res.data.message)) || ("Ошибка " + res.status);
+    showMsg(msgEl, msg, "error");
+    return null;
+  }
+  const d = res.data || {};
+  // сервис возвращает {Status, Data}. Data обычно содержит токен
+  const token = d.token || d.Data?.token || d.Data?.Token || d.Data?.access_token || d.Data;
+  if (typeof token === "string") { setToken(token); return token; }
+  if (token && typeof token === "object"){
+    // возможно внутри объекта
+    const t = token.token || token.Token || token.access_token;
+    if (t){ setToken(t); return t; }
+  }
+  showMsg(msgEl, "Не удалось получить токен", "error");
+  return null;
+}
+
+async function onLogin(){
+  const u = document.getElementById("loginUsername").value.trim();
+  const p = document.getElementById("loginPassword").value;
+  if (!u || !p){ showMsg("loginMsg","Введите имя и пароль","error"); return; }
+  showMsg("loginMsg","Вход...","info");
+  try{
+    const res = await apiLogin(u, p);
+    if (handleAuthResponse(res, "loginMsg")){
+      setUser({username: u});
+      enterApp();
+    }
+  } catch(e){ showMsg("loginMsg", e.message, "error"); }
+}
+
+async function onRegister(){
+  const u = document.getElementById("regUsername").value.trim();
+  const e = document.getElementById("regEmail").value.trim();
+  const p = document.getElementById("regPassword").value;
+  if (!u || !p){ showMsg("regMsg","Заполните поля","error"); return; }
+  showMsg("regMsg","Регистрация...","info");
+  try{
+    const res = await apiRegister(u, e, p);
+    if (!res.ok){
+      const msg = (res.data && (res.data.error || res.data.message)) || ("Ошибка " + res.status);
+      showMsg("regMsg", msg, "error"); return;
+    }
+    showMsg("regMsg","Успешно! Теперь войдите.","success");
+    setTimeout(()=>{
+      document.getElementById("registerCard").classList.add("hidden");
+      document.getElementById("loginUsername").value = u;
+      document.getElementById("loginPassword").value = "";
+    }, 800);
+  } catch(err){ showMsg("regMsg", err.message, "error"); }
+}
+
+async function onDummy(){
+  showMsg("loginMsg","Входим как dummy...","info");
+  try{
+    const res = await apiDummyLogin();
+    if (handleAuthResponse(res, "loginMsg")){
+      setUser({username: "dummy"});
+      enterApp();
+    }
+  } catch(e){ showMsg("loginMsg", e.message, "error"); }
+}
+
+function logout(){
+  clearAuth();
+  document.getElementById("appScreen").classList.add("hidden");
+  document.getElementById("authScreen").classList.remove("hidden");
+  showMsg("loginMsg","Вы вышли","info");
+}
+
+function enterApp(){
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("appScreen").classList.remove("hidden");
+  const u = getUser();
+  safeText(document.getElementById("whoami"), u ? ("Пользователь: " + (u.username||"")) : "");
+  switchTab("my");
+}
+
+/* ----- My bookings ----- */
+async function loadMy(){
+  showMsg("myMsg","Загрузка...","info");
+  try{
+    const res = await apiGetMyBooks();
+    if (res.status === 401){ logout(); return; }
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      showMsg("myMsg", msg, "error"); return;
+    }
+    const data = res.data?.Data ?? res.data ?? [];
+    const list = Array.isArray(data) ? data : (data.bookings || data.items || []);
+    showMsg("myMsg","Загружено: "+list.length,"success");
+    renderTable(
+      document.getElementById("myTableWrap"),
+      list,
+      [
+        {key:"id",         label:"ID"},
+        {key:"booking_id", label:"Booking ID"},
+        {key:"BookingID",  label:"Booking ID"},
+        {key:"room_id",    label:"Room"},
+        {key:"RoomID",     label:"Room"},
+        {key:"slot_id",    label:"Slot"},
+        {key:"SlotID",     label:"Slot"},
+        {key:"date",       label:"Дата"},
+        {key:"Date",       label:"Дата"},
+        {key:"start_time", label:"Начало"},
+        {key:"end_time",   label:"Конец"},
+        {key:"status",     label:"Статус"},
+      ],
+      [{ label:"Отменить", kind:"danger", onClick:r=>cancelBooking(getId(r)) }]
+    );
+  } catch(e){ showMsg("myMsg", e.message, "error"); }
+}
+
+function getId(row){
+  return row.id || row.booking_id || row.BookingID || row.bookingId || "";
+}
+
+async function cancelBooking(id){
+  if (!id){ alert("Не удалось определить ID"); return; }
+  if (!confirm("Отменить бронь "+id+"?")) return;
+  try{
+    const res = await apiCancelBooking(id);
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      alert(msg); return;
+    }
+    await loadMy();
+  } catch(e){ alert(e.message); }
+}
+
+/* ----- Create schedule ----- */
+async function onCreateSchedule(){
+  const roomId = document.getElementById("schRoom").value.trim();
+  const date   = document.getElementById("schDate").value;
+  const start  = document.getElementById("schStart").value;
+  const end    = document.getElementById("schEnd").value;
+  if (!roomId || !date || !start || !end){
+    showMsg("schMsg","Заполните все поля","error"); return;
+  }
+  showMsg("schMsg","Создание...","info");
+  try{
+    // Отправляем несколько вариантов имён полей — бэкенд возьмёт нужные
+    const payload = { date, start_time: start, end_time: end,
+                      startTime: start, endTime: end, Date: date };
+    const res = await apiCreateSchedule(roomId, payload);
+    if (res.status === 401){ logout(); return; }
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      showMsg("schMsg", msg, "error"); return;
+    }
+    showMsg("schMsg","Расписание создано","success");
+  } catch(e){ showMsg("schMsg", e.message, "error"); }
+}
+
+/* ----- Slots ----- */
+async function onLoadSlots(){
+  const roomId = document.getElementById("slotsRoom").value.trim();
+  const date   = document.getElementById("slotsDate").value;
+  if (!roomId || !date){ showMsg("slotsMsg","Заполните поля","error"); return; }
+  showMsg("slotsMsg","Загрузка...","info");
+  const list = document.getElementById("slotsList");
+  list.innerHTML = "";
+  try{
+    const res = await apiGetSlots(roomId, date);
+    if (res.status === 401){ logout(); return; }
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      showMsg("slotsMsg", msg, "error"); return;
+    }
+    const data = res.data?.Data ?? res.data ?? [];
+    const items = Array.isArray(data) ? data : (data.slots || data.items || []);
+    showMsg("slotsMsg","Найдено слотов: "+items.length,"success");
+    items.forEach(s=>{
+      const div = document.createElement("div");
+      div.className = "slot";
+
+      const info = document.createElement("div");
+      const id  = s.id || s.ID || s.slot_id || s.SlotID || "";
+      const st  = s.start_time || s.StartTime || s.startTime || "";
+      const et  = s.end_time   || s.EndTime   || s.endTime   || "";
+      const cap = s.capacity   || s.Capacity  || "";
+      const avl = (s.available ?? s.Available ?? s.is_available);
+      const line1 = document.createElement("div");
+      safeText(line1, "ID: " + id + "   " + st + " – " + et + (cap?"   capacity: "+cap:""));
+      const line2 = document.createElement("div");
+      line2.className="muted";
+      safeText(line2, "Свободен: " + (avl === undefined ? "?" : (avl ? "да" : "нет")));
+      info.appendChild(line1); info.appendChild(line2);
+
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Забронировать";
+      btn.disabled = avl === false;
+      btn.onclick = ()=>bookSlot(id, roomId, s);
+
+      div.appendChild(info); div.appendChild(btn);
+      list.appendChild(div);
+    });
+  } catch(e){ showMsg("slotsMsg", e.message, "error"); }
+}
+
+async function bookSlot(slotId, roomId, slotObj){
+  if (!slotId){ alert("Нет ID слота"); return; }
+  const payload = {
+    slot_id: slotId, SlotID: slotId, slotId,
+    room_id: roomId, RoomID: roomId, roomId,
+    date: slotObj.date || slotObj.Date || document.getElementById("slotsDate").value,
+  };
+  try{
+    const res = await apiCreateBooking(payload);
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      alert(msg); return;
+    }
+    alert("Забронировано!");
+    await onLoadSlots();
+  } catch(e){ alert(e.message); }
+}
+
+/* ----- All bookings ----- */
+async function loadAll(){
+  const page = parseInt(document.getElementById("allPage").value,10) || 1;
+  const size = parseInt(document.getElementById("allPageSize").value,10) || 20;
+  showMsg("allMsg","Загрузка...","info");
+  try{
+    const res = await apiGetAllBooks(page, size);
+    if (res.status === 401){ logout(); return; }
+    if (!res.ok){
+      const msg = (res.data && (res.data.error||res.data.message)) || "Ошибка "+res.status;
+      showMsg("allMsg", msg, "error"); return;
+    }
+    const data = res.data?.Data ?? res.data ?? {};
+    const list = Array.isArray(data) ? data : (data.bookings || data.items || []);
+    showMsg("allMsg","Страница "+page+", записей: "+list.length,"success");
+    renderTable(
+      document.getElementById("allTableWrap"),
+      list,
+      [
+        {key:"id",         label:"ID"},
+        {key:"booking_id", label:"Booking ID"},
+        {key:"BookingID",  label:"Booking ID"},
+        {key:"user_id",    label:"User"},
+        {key:"UserID",     label:"User"},
+        {key:"room_id",    label:"Room"},
+        {key:"RoomID",     label:"Room"},
+        {key:"slot_id",    label:"Slot"},
+        {key:"date",       label:"Дата"},
+        {key:"Date",       label:"Дата"},
+        {key:"status",     label:"Статус"},
+      ]
+    );
+  } catch(e){ showMsg("allMsg", e.message, "error"); }
+}
+
+/* =========================================================
+   BINDINGS
+   ========================================================= */
+document.getElementById("btnLogin").onclick        = onLogin;
+document.getElementById("btnRegister").onclick     = onRegister;
+document.getElementById("btnDummy").onclick        = onDummy;
+document.getElementById("btnLogout").onclick       = logout;
+document.getElementById("btnShowRegister").onclick = ()=>{
+  document.getElementById("registerCard").classList.remove("hidden");
+};
+document.getElementById("btnShowLogin").onclick    = ()=>{
+  document.getElementById("registerCard").classList.add("hidden");
+};
+document.getElementById("btnRefreshMy").onclick    = loadMy;
+document.getElementById("btnCreateSchedule").onclick = onCreateSchedule;
+document.getElementById("btnLoadSlots").onclick    = onLoadSlots;
+document.getElementById("btnLoadAll").onclick      = loadAll;
+
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick = ()=>switchTab(t.dataset.tab);
+});
+
+// Enter для полей
+document.getElementById("loginPassword").addEventListener("keydown", e=>{ if(e.key==="Enter") onLogin(); });
+document.getElementById("regPassword").addEventListener("keydown", e=>{ if(e.key==="Enter") onRegister(); });
+
+/* Auto-login если токен есть */
+(function init(){
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById("schDate").value = today;
+  document.getElementById("slotsDate").value = today;
+  if (getToken()){
+    enterApp();
+  }
+})();
+</script>
+</body>
+</html>
